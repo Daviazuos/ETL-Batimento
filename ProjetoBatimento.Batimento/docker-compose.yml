@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+    redis:
+      image: redis
+      command: redis-server
+      ports:
+        - "6379:6379"
+      networks:
+        - localhost
+    webserver:
+        image: puckel/docker-airflow:1.10.9
+        restart: always
+        links:
+            - "redis:datastore"
+        depends_on:
+         - redis
+        environment:
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+        volumes:
+            - .\dags:/usr/local/airflow/dags
+        ports:
+            - "8080:8080"
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+        networks:
+            - localhost
+
+networks:
+    localhost:
+      driver: bridge

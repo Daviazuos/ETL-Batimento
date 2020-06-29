@@ -1,0 +1,3 @@
+
+def QueryMcob():
+    print("Todo")

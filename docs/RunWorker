@@ -1,0 +1,1 @@
+# subprocess.Popen('celery -A WorkerRabbit worker --pool=solo -l info', shell=True)
