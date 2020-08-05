@@ -1,6 +1,47 @@
 version: "3"
 
 services:
+
+    postgres:
+        image: postgres:12
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 123456
+        ports:
+          - '5432:5432'
+        networks:
+          - localhost
+        restart: on-failure
+
+    pgadmin:
+        image: dpage/pgadmin4
+        environment:
+          PGADMIN_DEFAULT_EMAIL: admin
+          PGADMIN_DEFAULT_PASSWORD: admin
+        ports:
+          - '15432:80'
+        networks:
+          - localhost
+        restart: on-failure
+        
+    rabbitmq:
+        image: rabbitmq:3.8.2-management-alpine
+        environment:
+            RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+            RABBITMQ_DEFAULT_USER: "rabbit"
+            RABBITMQ_DEFAULT_PASS: "rabbit"
+            RABBITMQ_DEFAULT_VHOST: "/"
+        ports:
+            - "15672:15672"
+            - "5672:5672"
+            - "5671:5671"
+            - "4369:4369"
+            - "25672:25672"
+        labels:
+            NAME: "rabbitmq"
+        networks:
+            - localhost   
+            
     redis:
       image: redis
       command: redis-server
@@ -8,6 +49,7 @@ services:
         - "6379:6379"
       networks:
         - localhost
+        
     webserver:
         image: puckel/docker-airflow:1.10.9
         restart: always
@@ -19,6 +61,7 @@ services:
             - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
         volumes:
             - .\dags:/usr/local/airflow/dags
+            - .\Airflow\airflow.cfg:/usr/local/airflow/airflow.cfg
         ports:
             - "8080:8080"
         command: webserver
@@ -29,6 +72,11 @@ services:
             retries: 3
         networks:
             - localhost
+    flower:
+      image: mher/flower
+      command: ["flower", "--broker=redis://redis:6379/0", "--port=8888"]
+      ports:
+         - 5555:5555
 
 networks:
     localhost:
